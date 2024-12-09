@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Token Submission</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .wallet-section {
+            margin-bottom: 20px;
+        }
+        .connect-wallet-btn {
+            background: #9945FF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .connect-wallet-btn:hover {
+            opacity: 0.9;
+        }
+        .connected-wallet {
+            background: #4CAF50;
+        }
+        .notice {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .notice p {
+            margin: 0;
+            color: #495057;
+            line-height: 1.5;
+        }
+        .notice strong {
+            color: #007bff;
+        }
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .tier-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .tier-selection label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button[type="submit"]:hover {
+            background: #45a049;
+        }
+        .success-message {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="wallet-section">
+            <button id="connect-wallet-btn" class="connect-wallet-btn">Connect Phantom Wallet</button>
+        </div>
+
+        <div class="notice">
+            <p><strong>Note:</strong> Due to high submission volume, paid tiers do not guarantee immediate showcase. 
+            However, higher tier submissions receive priority placement and extended visibility. 
+            Free tier submissions are limited to one per wallet address every 24 hours.</p>
+        </div>
+
+        <form id="submission-form">
+            <div class="form-group">
+                <label for="token-address">Token Address *</label>
+                <input type="text" id="token-address" name="token-address" required>
+            </div>
+
+            <div class="form-group">
+                <label for="token-name">Token Name *</label>
+                <input type="text" id="token-name" name="token-name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="token-symbol">Token Symbol *</label>
+                <input type="text" id="token-symbol" name="token-symbol" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" name="email" required placeholder="You'll receive submission confirmation and updates here">
+            </div>
+
+            <div class="form-group">
+                <label for="website-url">Website URL</label>
+                <input type="url" id="website-url" name="website-url">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" placeholder="Tell us about your token"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="wallet-address">Your Wallet Address *</label>
+                <input type="text" id="wallet-address" name="wallet-address" required readonly>
+            </div>
+            
+            <div class="tier-selection">
+                <label><input type="radio" name="tier" value="premium"> Premium Tier ($0.50) - 48 Hours, Top Placement</label>
+                <label><input type="radio" name="tier" value="standard"> Standard Tier ($0.25) - 24 Hours, Priority Placement</label>
+                <label><input type="radio" name="tier" value="free" checked> Free Tier - 12 Hours, Basic Listing</label>
+            </div>
+
+            <button type="submit">Submit Token</button>
+        </form>
+
+        <div class="success-message" id="success-message">
+            Your token has been submitted successfully! Check your email for confirmation details.
+        </div>
+    </div>
+
+    <!-- Load Phantom Wallet Adapter -->
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    
+    <script>
+        let walletAddress = null;
+
+        async function connectWallet() {
+            try {
+                if (!window.solana || !window.solana.isPhantom) {
+                    alert('Please install Phantom wallet');
+                    return;
+                }
+
+                const resp = await window.solana.connect();
+                walletAddress = resp.publicKey.toString();
+                
+                const btn = document.getElementById('connect-wallet-btn');
+                btn.textContent = 'Wallet Connected';
+                btn.classList.add('connected-wallet');
+                btn.disabled = true;
+
+                document.getElementById('wallet-address').value = walletAddress;
+            } catch (err) {
+                console.error('Error connecting wallet:', err);
+                alert('Failed to connect wallet');
+            }
+        }
+
+        document.getElementById('connect-wallet-btn').addEventListener('click', connectWallet);
+
+        document.getElementById('submission-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                tokenAddress: document.getElementById('token-address').value,
+                tokenName: document.getElementById('token-name').value,
+                tokenSymbol: document.getElementById('token-symbol').value,
+                email: document.getElementById('email').value,
+                websiteUrl: document.getElementById('website-url').value,
+                description: document.getElementById('description').value,
+                submitterAddress: document.getElementById('wallet-address').value,
+                tier: document.querySelector('input[name="tier"]:checked').value
+            };
+
+            try {
+                const response = await fetch('http://localhost:3000/api/tokens', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('success-message').style.display = 'block';
+                    document.getElementById('submission-form').reset();
+                    document.getElementById('wallet-address').value = walletAddress;
+                } else {
+                    alert(result.message || 'Failed to submit token');
+                }
+            } catch (error) {
+                console.error('Error submitting token:', error);
+                alert('Failed to submit token. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Token Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .status-filter {
+            margin-bottom: 20px;
+        }
+        .token-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .token-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .token-card h3 {
+            margin-top: 0;
+        }
+        .status-pending {
+            color: orange;
+        }
+        .status-approved {
+            color: green;
+        }
+        .status-rejected {
+            color: red;
+        }
+        button {
+            padding: 5px 10px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .approve {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        .reject {
+            background-color: #f44336;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Token Admin Dashboard</h1>
+    
+    <div class="status-filter">
+        <button onclick="loadTokens('all')">All</button>
+        <button onclick="loadTokens('pending')">Pending</button>
+        <button onclick="loadTokens('approved')">Approved</button>
+        <button onclick="loadTokens('rejected')">Rejected</button>
+    </div>
+
+    <div id="tokenGrid" class="token-grid">
+        <!-- Tokens will be loaded here -->
+    </div>
+
+    <script>
+        async function loadTokens(status = 'all') {
+            try {
+                const url = status === 'all' 
+                    ? 'http://your-api-server:3000/api/tokens'
+                    : `http://your-api-server:3000/api/tokens?status=${status}`;
+                
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayTokens(result.data);
+                } else {
+                    alert('Error loading tokens: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function displayTokens(tokens) {
+            const grid = document.getElementById('tokenGrid');
+            grid.innerHTML = tokens.map(token => `
+                <div class="token-card">
+                    <h3>${token.token_name} (${token.token_symbol})</h3>
+                    <p>Address: ${token.token_address}</p>
+                    <p>Submitter: ${token.submitter_address}</p>
+                    <p>Status: <span class="status-${token.status}">${token.status}</span></p>
+                    <p>Fee: ${token.fee_percentage/100}%</p>
+                    ${token.status === 'pending' ? `
+                        <button class="approve" onclick="updateStatus('${token.token_address}', 'approved')">Approve</button>
+                        <button class="reject" onclick="updateStatus('${token.token_address}', 'rejected')">Reject</button>
+                    ` : ''}
+                    <button onclick="viewTransactions('${token.token_address}')">View Transactions</button>
+                </div>
+            `).join('');
+        }
+
+        async function updateStatus(tokenAddress, status) {
+            try {
+                const response = await fetch(`http://your-api-server:3000/api/tokens/${tokenAddress}/status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert(`Token ${status} successfully!`);
+                    loadTokens('all');
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function viewTransactions(tokenAddress) {
+            try {
+                const response = await fetch(`http://your-api-server:3000/api/tokens/${tokenAddress}/transactions`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const transactions = result.data;
+                    alert(`Found ${transactions.length} transactions\n\n` + 
+                          transactions.map(tx => 
+                              `Amount: ${tx.amount}\nFee: ${tx.fee}\nHash: ${tx.transaction_hash}`
+                          ).join('\n\n'));
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Load all tokens when page loads
+        loadTokens('all');
+    </script>
+</body>
+</html> 

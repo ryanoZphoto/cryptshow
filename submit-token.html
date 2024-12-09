@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Submit Your Token</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Submit Your Token</h1>
+    <form id="tokenForm">
+        <div class="form-group">
+            <label for="tokenAddress">Token Address *</label>
+            <input type="text" id="tokenAddress" required>
+        </div>
+        <div class="form-group">
+            <label for="tokenName">Token Name *</label>
+            <input type="text" id="tokenName" required>
+        </div>
+        <div class="form-group">
+            <label for="tokenSymbol">Token Symbol *</label>
+            <input type="text" id="tokenSymbol" required>
+        </div>
+        <div class="form-group">
+            <label for="tokenDecimals">Token Decimals *</label>
+            <input type="number" id="tokenDecimals" required>
+        </div>
+        <div class="form-group">
+            <label for="websiteUrl">Website URL</label>
+            <input type="text" id="websiteUrl">
+        </div>
+        <div class="form-group">
+            <label for="twitterUrl">Twitter URL</label>
+            <input type="text" id="twitterUrl">
+        </div>
+        <div class="form-group">
+            <label for="telegramUrl">Telegram URL</label>
+            <input type="text" id="telegramUrl">
+        </div>
+        <div class="form-group">
+            <label for="discordUrl">Discord URL</label>
+            <input type="text" id="discordUrl">
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="logoUrl">Logo URL</label>
+            <input type="text" id="logoUrl">
+        </div>
+        <div class="form-group">
+            <label for="submitterAddress">Your Wallet Address *</label>
+            <input type="text" id="submitterAddress" required>
+        </div>
+        <button type="submit">Submit Token</button>
+    </form>
+
+    <script>
+        document.getElementById('tokenForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                tokenAddress: document.getElementById('tokenAddress').value,
+                tokenName: document.getElementById('tokenName').value,
+                tokenSymbol: document.getElementById('tokenSymbol').value,
+                tokenDecimals: parseInt(document.getElementById('tokenDecimals').value),
+                websiteUrl: document.getElementById('websiteUrl').value,
+                twitterUrl: document.getElementById('twitterUrl').value,
+                telegramUrl: document.getElementById('telegramUrl').value,
+                discordUrl: document.getElementById('discordUrl').value,
+                description: document.getElementById('description').value,
+                logoUrl: document.getElementById('logoUrl').value,
+                submitterAddress: document.getElementById('submitterAddress').value
+            };
+
+            try {
+                const response = await fetch('http://your-api-server:3000/api/tokens', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Token submitted successfully!');
+                    e.target.reset();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error submitting token: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html> 
